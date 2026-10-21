@@ -1,0 +1,5 @@
+ls
+cd "My Documents"
+vfs-info
+vfs-init
+vfs-info

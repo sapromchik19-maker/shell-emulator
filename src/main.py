@@ -3,6 +3,7 @@ import shlex
 import tkinter as tk
 from tkinter import scrolledtext
 from pathlib import Path
+from vfs import VirtualFileSystem
 
 
 VFS_NAME = "virtual_fs"
@@ -53,9 +54,11 @@ def execute_command(parts):
 class ShellEmulator:
     """Графический эмулятор командной оболочки."""
 
-    def __init__(self, root):
+    def __init__(self, root, vfs=None):
         self.root = root
-        self.root.title(f"Shell Emulator - {VFS_NAME}")
+        self.vfs = vfs
+        vfs_name = self.vfs.name if self.vfs else VFS_NAME
+        self.root.title(f"Shell Emulator - {vfs_name}")
         self.root.geometry("800x500")
 
         self.output = scrolledtext.ScrolledText(
@@ -91,6 +94,45 @@ class ShellEmulator:
         self.output.see(tk.END)
         self.output.config(state=tk.DISABLED)
 
+    def vfs_info(self):
+        """Возвращает информацию о загруженной VFS."""
+        if self.vfs is None:
+            raise ValueError("VFS не загружена")
+
+        return (
+            f"Имя VFS: {self.vfs.name}\n"
+            f"SHA-256: {self.vfs.get_hash()}"
+        )
+
+    def vfs_init(self):
+        """Сбрасывает виртуальную файловую систему."""
+        if self.vfs is None:
+            raise ValueError("VFS не загружена")
+
+        self.vfs.reset()
+        return "VFS сброшена к состоянию по умолчанию."
+
+    def run_command(self, parts):
+        """Выполняет команду эмулятора."""
+        command = parts[0]
+        arguments = parts[1:]
+
+        if command == "vfs-info":
+            if arguments:
+                raise ValueError(
+                    "vfs-info: аргументы не поддерживаются"
+                )
+            return self.vfs_info()
+
+        if command == "vfs-init":
+            if arguments:
+                raise ValueError(
+                    "vfs-init: аргументы не поддерживаются"
+                )
+            return self.vfs_init()
+
+        return execute_command(parts)
+
     def on_enter(self, event):
         """Обрабатывает команду после нажатия Enter."""
         command_line = self.command_entry.get()
@@ -106,7 +148,7 @@ class ShellEmulator:
             if not parts:
                 return
 
-            result = execute_command(parts)
+            result = self.run_command(parts)
 
             if result is None:
                 self.root.destroy()
@@ -138,7 +180,7 @@ class ShellEmulator:
                 if not parts:
                     continue
 
-                result = execute_command(parts)
+                result = self.run_command(parts)
 
                 if result is None:
                     self.root.destroy()
@@ -155,14 +197,24 @@ class ShellEmulator:
 
 
 def main():
-    """Создает окно и запускает эмулятор."""
+    """Создаёт окно, загружает VFS и запускает эмулятор."""
     args = parse_arguments()
 
     print(f"VFS: {args.vfs}")
     print(f"Стартовый скрипт: {args.script}")
 
+    vfs = None
+
+    if args.vfs:
+        try:
+            vfs = VirtualFileSystem(args.vfs)
+            print(f"VFS '{vfs.name}' успешно загружена")
+        except (OSError, ValueError) as error:
+            print(f"Ошибка загрузки VFS: {error}")
+            return
+
     root = tk.Tk()
-    emulator = ShellEmulator(root)
+    emulator = ShellEmulator(root, vfs)
 
     if args.script:
         emulator.run_script(args.script)
