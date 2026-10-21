@@ -1,10 +1,26 @@
+import argparse
 import shlex
 import tkinter as tk
 from tkinter import scrolledtext
+from pathlib import Path
 
 
 VFS_NAME = "virtual_fs"
 
+def parse_arguments():
+    """Получает параметры запуска эмулятора."""
+    parser = argparse.ArgumentParser(
+        description="Эмулятор командной оболочки"
+    )
+    parser.add_argument(
+        "--vfs",
+        help="Путь к виртуальной файловой системе"
+    )
+    parser.add_argument(
+        "--script",
+        help="Путь к стартовому скрипту"
+    )
+    return parser.parse_args()
 
 def parse_command(command_line):
     """Разделяет строку на команду и аргументы с учетом кавычек."""
@@ -100,12 +116,57 @@ class ShellEmulator:
 
         except ValueError as error:
             self.write_output(f"Ошибка: {error}")
+    def run_script(self, script_path):
+        """Выполняет команды стартового скрипта."""
+        try:
+            lines = Path(script_path).read_text(
+                encoding="utf-8"
+            ).splitlines()
+        except OSError as error:
+            self.write_output(f"Ошибка чтения скрипта: {error}")
+            return
+
+        for number, line in enumerate(lines, start=1):
+            if not line.strip():
+                continue
+
+            self.write_output(f"{VFS_NAME}:~$ {line}")
+
+            try:
+                parts = parse_command(line)
+
+                if not parts:
+                    continue
+
+                result = execute_command(parts)
+
+                if result is None:
+                    self.root.destroy()
+                    return
+
+                self.write_output(result)
+
+            except ValueError as error:
+                self.write_output(
+                    f"Ошибка в строке {number}: {error}"
+                )
+                self.write_output("Выполнение скрипта остановлено.")
+                return
 
 
 def main():
     """Создает окно и запускает эмулятор."""
+    args = parse_arguments()
+
+    print(f"VFS: {args.vfs}")
+    print(f"Стартовый скрипт: {args.script}")
+
     root = tk.Tk()
-    ShellEmulator(root)
+    emulator = ShellEmulator(root)
+
+    if args.script:
+        emulator.run_script(args.script)
+
     root.mainloop()
 
 

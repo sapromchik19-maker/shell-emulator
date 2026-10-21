@@ -1,0 +1,5 @@
+ls
+cd documents
+ls "My Documents"
+unknown
+cd test
