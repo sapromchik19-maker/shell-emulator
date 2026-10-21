@@ -2,6 +2,8 @@ import sys
 import unittest
 import hashlib
 import tempfile
+import shutil
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -75,6 +77,26 @@ class TestVFS(unittest.TestCase):
             vfs.reset()
 
         self.assertIn("readme.txt", vfs.files)
+
+    def test_reset_success(self):
+        """Проверяет успешный сброс рабочей VFS."""
+        work_root = Path(__file__).resolve().parents[1] / "vfs_work"
+        test_path = work_root / f"test_{uuid.uuid4().hex}"
+
+        test_path.mkdir(parents=True)
+
+        try:
+            (test_path / "file.txt").write_text("Test", encoding="utf-8")
+
+            vfs = VirtualFileSystem(test_path)
+            self.assertIn("file.txt", vfs.files)
+
+            vfs.reset()
+
+            self.assertEqual(vfs.files, {})
+            self.assertEqual(list(test_path.iterdir()), [])
+        finally:
+            shutil.rmtree(test_path, ignore_errors=True)
 
 if __name__ == "__main__":
     unittest.main()

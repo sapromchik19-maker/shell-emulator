@@ -15,43 +15,54 @@ class VirtualFileSystem:
         self.load()
 
     def load(self):
-        """Загружает структуру каталогов и файлы в память."""
+        """Загружает файлы и каталоги VFS в память."""
         if not self.path.exists():
             raise FileNotFoundError(
                 f"VFS не найдена: {self.path}"
             )
 
-        if not self.path.is_dir():
+        if not self.path.is_dir() or self.path.is_symlink():
             raise ValueError(
-                f"Путь VFS не является директорией: {self.path}"
+                f"Некорректная директория VFS: {self.path}"
             )
 
-        self.files.clear()
+        files = {}
 
         for item in sorted(self.path.rglob("*")):
             relative_path = item.relative_to(self.path).as_posix()
 
+            if item.is_symlink():
+                raise ValueError(
+                    f"Символическая ссылка запрещена: {relative_path}"
+                )
+
             if item.is_dir():
-                self.files[relative_path] = None
+                files[relative_path] = None
             elif item.is_file():
-                self.files[relative_path] = item.read_bytes()
+                files[relative_path] = item.read_bytes()
             else:
                 raise ValueError(
-                    f"Неподдерживаемый элемент VFS: {relative_path}"
+                    f"Неподдерживаемый элемент: {relative_path}"
                 )
+
+        self.files = files
+
     def get_hash(self):
         """Вычисляет SHA-256 виртуальной файловой системы."""
         hasher = hashlib.sha256()
 
         for path in sorted(self.files):
             content = self.files[path]
+            path_bytes = path.encode("utf-8")
 
-            hasher.update(path.encode("utf-8"))
+            hasher.update(len(path_bytes).to_bytes(8, "big"))
+            hasher.update(path_bytes)
 
             if content is None:
-                hasher.update(b"DIRECTORY")
+                hasher.update(b"D")
             else:
-                hasher.update(b"FILE")
+                hasher.update(b"F")
+                hasher.update(len(content).to_bytes(8, "big"))
                 hasher.update(content)
 
         return hasher.hexdigest()

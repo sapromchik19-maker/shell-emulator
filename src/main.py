@@ -85,7 +85,9 @@ class ShellEmulator:
         self.command_entry.focus_set()
 
         self.write_output("Shell Emulator запущен.")
-        self.write_output("Доступные команды: ls, cd, exit.\n")
+        self.write_output(
+            "Доступные команды: ls, cd, exit, vfs-info, vfs-init.\n"
+        )
 
     def write_output(self, text):
         """Добавляет текст в область вывода."""
@@ -164,7 +166,7 @@ class ShellEmulator:
             lines = Path(script_path).read_text(
                 encoding="utf-8"
             ).splitlines()
-        except OSError as error:
+        except (OSError, UnicodeError) as error:
             self.write_output(f"Ошибка чтения скрипта: {error}")
             return
 
