@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0\.."
-python src\main.py --script "scripts/start.txt"
+python src\shell_emulator.py --script "scripts/start.txt"

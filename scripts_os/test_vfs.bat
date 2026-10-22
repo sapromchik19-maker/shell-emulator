@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0\.."
-python src\main.py --vfs "example_vfs"
+python src\shell_emulator.py --vfs "example_vfs"

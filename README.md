@@ -64,25 +64,25 @@
 Запуск без дополнительных параметров:
 
 ```bash
-python src/main.py
+python src/shell_emulator.py
 ```
 
 Запуск с указанием VFS:
 
 ```bash
-python src/main.py --vfs "example_vfs"
+python src/shell_emulator.py --vfs "example_vfs"
 ```
 
 Запуск со стартовым скриптом:
 
 ```bash
-python src/main.py --script "scripts/start.txt"
+python src/shell_emulator.py --script "scripts/start.txt"
 ```
 
 Запуск с двумя параметрами:
 
 ```bash
-python src/main.py --vfs "example_vfs" --script "scripts/start.txt"
+python src/shell_emulator.py --vfs "example_vfs" --script "scripts/start.txt"
 ```
 
 В Windows программу также можно запустить через файл `run.bat`.
@@ -174,19 +174,19 @@ virtual_fs:~$ ls file1 file2
 Пример запуска с минимальной файловой системой:
 
 ```powershell
-python src/main.py --vfs "vfs_examples/minimal"
+python src/shell_emulator.py --vfs "vfs_examples/minimal"
 ```
 
 Пример запуска с вложенной файловой системой:
 
 ```powershell
-python src/main.py --vfs "vfs_examples/nested"
+python src/shell_emulator.py --vfs "vfs_examples/nested"
 ```
 
 Пример запуска стартового скрипта:
 
 ```powershell
-python src/main.py --vfs "vfs_examples/nested" --script "scripts/stage3_error.txt"
+python src/shell_emulator.py --vfs "vfs_examples/nested" --script "scripts/stage3_error.txt"
 ```
 
 ### Тестирование третьего этапа
